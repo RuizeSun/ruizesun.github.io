@@ -1,0 +1,14 @@
+[[main]]
+  name = "主页"
+  pageRef = "/"
+  weight = 10
+
+[[main]]
+  name = "日常"
+  pageRef = "/default"
+  weight = 20
+
+[[main]]
+  name = "学习"
+  pageRef = "/edu"
+  weight = 30

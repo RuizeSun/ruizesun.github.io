@@ -1,5 +1,5 @@
 <center>欢迎来到我的 Blog</center>
 
-# 2024 七月
+# 合集
 
-[Hello, world! ](/2024/07/26/2158.html)
+[2024-07-26 21:58:00 Hello, world! ](/2024/07/26/2158.html)
