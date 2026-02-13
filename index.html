@@ -1,28 +1,32 @@
 <!doctype html>
-<html lang="zh-TW">
+<html lang="zh-CN">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 		<title>RuizeSun | 学生 & 开发者</title>
 		<script src="https://cdn.tailwindcss.com"></script>
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 		<style>
 			@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
-			/* 定义统一圆角变数 */
 			:root {
-				--radius-lg: 3rem; /* 大容器标准圆角 */
-				--radius-md: 1.5rem; /* 内层元件标准圆角 */
+				--radius-lg: 3rem;
+				--radius-md: 1.5rem;
+				--radius-sm: 1rem;
+				--sidebar-width-collapsed: 72px;
+				--sidebar-width-expanded: 220px;
 			}
 
 			body {
 				background-color: #050505;
 				color: white;
+				font-family: "Inter", sans-serif;
+				min-height: 100vh;
+				margin: 0;
 				overflow: hidden;
-				height: 100vh;
 			}
 
-			/* 空间背景效果 */
+			/* 空间动态背景 */
 			.bg-spatial {
 				position: fixed;
 				inset: 0;
@@ -32,66 +36,114 @@
 			.blob {
 				position: absolute;
 				border-radius: 50%;
-				filter: blur(120px);
+				filter: blur(5px);
 				opacity: 0.15;
 			}
 
 			/* Vision Pro 玻璃材质 */
 			.vision-glass {
-				background: rgba(255, 255, 255, 0.02);
-				backdrop-filter: blur(60px) saturate(180%) brightness(120%);
-				-webkit-backdrop-filter: blur(60px) saturate(180%) brightness(120%);
+				background: rgba(255, 255, 255, 0.03);
+				backdrop-filter: blur(5px) saturate(180%) brightness(110%);
+				-webkit-backdrop-filter: blur(5px) saturate(180%) brightness(110%);
 				border: 1px solid rgba(255, 255, 255, 0.1);
 			}
 
-			/* 侧边栏容器 */
+			/* 侧边栏包装层：固定佔位，不挤压内容 */
 			.sidebar-wrapper {
 				position: relative;
-				width: 72px;
+				width: var(--sidebar-width-collapsed);
+				flex-shrink: 0;
 				z-index: 100;
 			}
 
+			/* 侧边栏主体：实现悬浮扩展效果 */
 			.sidebar-container {
 				position: absolute;
-				left: 0;
 				top: 50%;
-				transform: translateY(-50%) translateZ(0);
-				width: 72px;
-				/* 将 border-radius 加入 transition，实现光学修正 */
-				transition:
-					width 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-					background 0.6s,
-					box-shadow 0.6s,
-					border-radius 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-				background: rgba(255, 255, 255, 0.03);
-				/* 窄的时候使用较小圆角，避免看起来太突兀 */
+				left: 0;
+				transform: translateY(-50%);
+				width: var(--sidebar-width-collapsed);
+				height: fit-content;
 				border-radius: 2.25rem;
+				transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+				box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
 				overflow: hidden;
-				will-change: width, border-radius;
 			}
 
-			.sidebar-wrapper:hover .sidebar-container {
-				width: 240px;
-				background: rgba(30, 30, 30, 0.85);
-				box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-				/* 展开后与主容器圆角一致 (3rem) */
-				border-radius: var(--radius-lg);
+			@media (min-width: 769px) {
+				.sidebar-wrapper:hover .sidebar-container {
+					width: var(--sidebar-width-expanded);
+					background: rgba(30, 30, 30, 0.8);
+					backdrop-filter: blur(5px) saturate(200%);
+					box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.8);
+					transform: translateY(-50%) scale(1.1); /* 轻微放大增加层次感 */
+					border-radius: var(--radius-lg);
+				}
+			}
+
+			/* 行动端底部导航 (保持原样或适当微调) */
+			@media (max-width: 768px) {
+				.sidebar-wrapper {
+					position: fixed;
+					bottom: 20px;
+					left: 50%;
+					transform: translateX(-50%);
+					width: calc(100% - 40px);
+					height: 70px;
+					z-index: 100;
+				}
+				.sidebar-container {
+					position: relative;
+					top: 0;
+					left: 0;
+					transform: none;
+					width: 100% !important;
+					height: 100%;
+					display: flex;
+					flex-direction: row !important;
+					justify-content: space-around;
+					align-items: center;
+					padding: 0 10px !important;
+					border-radius: 9999rem !important;
+				}
+				.nav-item {
+					margin: 0 !important;
+					width: 20vw !important;
+					flex-direction: column;
+					height: auto !important;
+					padding: 8px !important;
+				}
+				.nav-label {
+					display: block !important;
+					opacity: 1 !important;
+					font-size: 10px;
+					margin-top: 4px;
+					margin-left: 0 !important;
+				}
+				.sidebar-container .flex-col {
+					flex-direction: row !important;
+					width: 100%;
+					justify-content: space-around;
+				}
+				.mt-8.border-t {
+					display: none;
+				}
 			}
 
 			.nav-item {
 				display: flex;
 				align-items: center;
 				height: 52px;
-				margin: 4px 10px;
-				border-radius: var(--radius-md);
+				margin: 6px 10px;
+				border-radius: 9999rem;
 				color: rgba(255, 255, 255, 0.4);
-				transition: all 0.3s ease;
+				transition:
+					background 0.3s ease,
+					transform 0.3s ease,
+					backdrop-filter 0.3s ease,
+					/* 排除 border */ color 0.3s ease;
 				white-space: nowrap;
-				background: none;
-				border: none;
-				width: calc(100% - 20px);
 				cursor: pointer;
-				padding: 0;
 			}
 
 			.nav-icon-box {
@@ -102,33 +154,34 @@
 				align-items: center;
 			}
 
-			.nav-item:hover,
+			.nav-item:hover {
+				background-color: rgba(255, 255, 255, 0.1);
+			}
 			.nav-item.active {
-				background: rgba(255, 255, 255, 0.1);
+				background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, /* 起始透明度降到 0.1 */ rgba(255, 255, 255, 0.075) 100% /* 结束透明度降到 0.05 */);
+				backdrop-filter: blur(15px); /* 增加模煳度来弥补颜色的变澹 */
+				border: 1px solid rgba(255, 255, 255, 0.1); /* 边框也要减弱 */
 				color: white;
 			}
 
 			.nav-label {
 				opacity: 0;
-				margin-left: 4px;
 				transition: opacity 0.3s;
-				pointer-events: none;
+				font-weight: 500;
 			}
 			.sidebar-wrapper:hover .nav-label {
 				opacity: 1;
 			}
 
-			/* 内容主容器 */
+			/* 主容器圆角与阴影 */
 			main.vision-glass {
 				border-radius: var(--radius-lg);
+				box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
 			}
-
-			.custom-scrollbar::-webkit-scrollbar {
-				width: 4px;
-			}
-			.custom-scrollbar::-webkit-scrollbar-thumb {
-				background: rgba(255, 255, 255, 0.1);
-				border-radius: 10px;
+			@media (max-width: 768px) {
+				main.vision-glass {
+					border-radius: var(--radius-md);
+				}
 			}
 
 			.tab-content {
@@ -142,7 +195,7 @@
 			@keyframes slideUp {
 				from {
 					opacity: 0;
-					transform: translateY(20px);
+					transform: translateY(15px);
 				}
 				to {
 					opacity: 1;
@@ -150,26 +203,19 @@
 				}
 			}
 
-			/* 卡片类元件圆角 */
-			.anime-card,
-			.skill-card,
-			.avatar-img {
-				border-radius: var(--radius-md) !important;
-			}
-
 			.anime-card {
 				background: rgba(255, 255, 255, 0.03);
 				border: 1px solid rgba(255, 255, 255, 0.08);
-				transition:
-					transform 0.3s,
-					background 0.3s;
-				overflow: hidden;
-				display: flex;
-				height: 140px;
+				border-radius: var(--radius-sm);
+				transition: all 0.3s;
 			}
-			.anime-card:hover {
-				transform: scale(1.02);
-				background: rgba(255, 255, 255, 0.06);
+
+			.custom-scrollbar::-webkit-scrollbar {
+				width: 4px;
+			}
+			.custom-scrollbar::-webkit-scrollbar-thumb {
+				background: rgba(255, 255, 255, 0.1);
+				border-radius: 10px;
 			}
 
 			.loading-shimmer {
@@ -187,114 +233,121 @@
 			}
 		</style>
 	</head>
-	<body>
+	<body class="flex items-center justify-center">
 		<div class="bg-spatial">
-			<div class="blob bg-blue-900 w-[60vw] h-[60vw] -top-[10%] -left-[10%]"></div>
-			<div class="blob bg-purple-900 w-[50vw] h-[50vw] -bottom-[10%] -right-[10%]"></div>
+			<div class="blob bg-blue-900/20 w-[80vw] h-[80vw] -top-[10%] -left-[10%]"></div>
+			<div class="blob bg-purple-900/20 w-[70vw] h-[70vw] -bottom-[10%] -right-[10%]"></div>
 		</div>
 
-		<div class="relative z-10 flex items-center justify-center h-screen p-8">
-			<div class="flex gap-8 w-full max-w-7xl h-[88vh]">
+		<div class="relative z-10 w-full max-w-7xl px-4 py-4 md:px-8 h-screen flex items-center justify-center">
+			<!-- 整体佈局容器 -->
+			<div class="flex flex-col md:flex-row gap-4 md:gap-6 w-full h-[92vh] md:h-[80vh] items-stretch">
+				<!-- 侧边栏：紧贴内容，悬浮时不挤压 -->
 				<aside class="sidebar-wrapper">
-					<nav class="sidebar-container vision-glass py-6 h-fit">
-						<div class="flex flex-col gap-2">
+					<nav class="sidebar-container vision-glass py-2 md:py-6">
+						<div class="flex flex-row md:flex-col gap-1 md:gap-2">
 							<button onclick="switchTab('about', this)" class="nav-item active">
-								<div class="nav-icon-box"><i class="fa-solid fa-user text-lg"></i></div>
+								<div class="nav-icon-box"><i class="fa-solid fa-user text-lg md:text-xl"></i></div>
 								<span class="nav-label">关于我</span>
 							</button>
 							<button onclick="switchTab('works', this)" class="nav-item">
-								<div class="nav-icon-box"><i class="fa-solid fa-code text-lg"></i></div>
-								<span class="nav-label">主要作品</span>
+								<div class="nav-icon-box"><i class="fa-solid fa-code text-lg md:text-xl"></i></div>
+								<span class="nav-label">作品集</span>
 							</button>
 							<button onclick="switchTab('anime', this)" class="nav-item">
-								<div class="nav-icon-box"><i class="fa-solid fa-tv text-lg"></i></div>
-								<span class="nav-label">看过的动漫</span>
+								<div class="nav-icon-box"><i class="fa-solid fa-tv text-lg md:text-xl"></i></div>
+								<span class="nav-label">动漫收藏</span>
 							</button>
 						</div>
-						<div class="mt-8 border-t border-white/10 pt-4">
+						<div class="hidden md:block mt-8 border-t border-white/10 pt-4">
 							<a href="https://www.github.com/RuizeSun" target="_blank" class="nav-item">
 								<div class="nav-icon-box"><i class="fa-brands fa-github text-lg"></i></div>
-								<span class="nav-label">GitHub 主页</span>
+								<span class="nav-label">GitHub</span>
 							</a>
 						</div>
 					</nav>
 				</aside>
 
-				<main class="vision-glass flex-1 flex flex-col overflow-hidden">
-					<header class="px-12 py-10 flex justify-between items-end border-b border-white/5">
+				<!-- 主内容容器 -->
+				<main class="vision-glass flex-1 flex flex-col overflow-hidden w-full relative z-10">
+					<header class="px-6 py-6 md:px-12 md:py-10 flex justify-between items-end border-b border-white/5">
 						<div>
-							<h1 id="header-title" class="text-4xl font-bold tracking-tight">RuizeSun</h1>
-							<p class="text-white/30 text-sm mt-1 tracking-widest uppercase">Junior Middle School Student</p>
+							<h1 id="header-title" class="text-2xl md:text-4xl font-bold tracking-tight">RuizeSun</h1>
+							<p class="text-white/30 text-[10px] md:text-sm mt-1 tracking-widest uppercase">Junior Middle School Student</p>
+						</div>
+						<div class="md:hidden">
+							<a href="https://www.github.com/RuizeSun" target="_blank" class="text-white/40">
+								<i class="fa-brands fa-github text-2xl"></i>
+							</a>
 						</div>
 					</header>
 
-					<div class="flex-1 overflow-y-auto px-12 py-10 custom-scrollbar">
-						<div id="about" class="tab-content active space-y-12">
-							<section class="flex flex-col md:flex-row items-center gap-10">
-								<img src="https://avatars.githubusercontent.com/ruizesun" alt="RuizeSun" class="avatar-img w-40 h-40 border-4 border-white/10" />
-								<div class="space-y-4">
-									<h2 class="text-3xl font-bold">🧑‍💻 关于我</h2>
-									<ul class="text-white/60 space-y-2 text-lg">
-										<li>• 13 岁 (2012/08/02)，就读初中二年级</li>
-										<li>• 正在努力扩充自己的技术能力</li>
+					<div class="flex-1 overflow-y-auto px-6 py-6 md:px-12 md:py-10 custom-scrollbar">
+						<!-- About Tab -->
+						<div id="about" class="tab-content active space-y-8 md:space-y-12">
+							<section class="flex flex-col md:flex-row items-center gap-6 md:gap-10 text-center md:text-left">
+								<img src="https://avatars.githubusercontent.com/ruizesun" alt="RuizeSun" class="w-32 h-32 md:w-40 md:h-40 rounded-2xl md:rounded-[1.5rem] border-4 border-white/10 shadow-2xl" />
+								<div class="space-y-3">
+									<h2 class="text-2xl md:text-3xl font-bold">🧑‍💻 你好，我是 RuizeSun</h2>
+									<ul class="text-white/60 space-y-1 md:space-y-2 text-base md:text-lg">
+										<li>• <span id="age-span" class="font-mono text-white">13</span> 岁 (2012/08/02)，就读初二</li>
+										<li>• 致力于 Web 开发与技术探索</li>
 									</ul>
 								</div>
 							</section>
 
-							<section class="grid grid-cols-1 md:grid-cols-2 gap-6">
-								<div class="skill-card bg-white/5 p-8 border border-white/10">
-									<h3 class="text-sm font-bold text-white/30 mb-6 uppercase tracking-widest">🖥️ 编程语言</h3>
+							<section class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+								<div class="bg-white/5 p-6 md:p-8 rounded-2xl border border-white/10">
+									<h3 class="text-xs font-bold text-white/30 mb-4 uppercase tracking-widest">🖥️ 编程语言</h3>
 									<div class="flex flex-wrap gap-2">
-										<img src="https://img.shields.io/badge/Python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54" class="h-7 rounded" />
-										<img src="https://img.shields.io/badge/PHP-%23777BB4.svg?style=for-the-badge&logo=php&logoColor=white" class="h-7 rounded" />
-										<img src="https://img.shields.io/badge/HTML5-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white" class="h-7 rounded" />
-										<img src="https://img.shields.io/badge/JavaScript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E" class="h-7 rounded" />
-										<img src="https://img.shields.io/badge/CSS-%231572B6.svg?style=for-the-badge&logo=css&logoColor=white" class="h-7 rounded" />
-										<img src="https://img.shields.io/badge/Scratch-%23F7A618.svg?style=for-the-badge&logo=scratch&logoColor=%23F7DF1E" class="h-7 rounded" />
+										<img src="https://img.shields.io/badge/Python-3670A0?style=flat&logo=python&logoColor=ffdd54" class="h-6" />
+										<img src="https://img.shields.io/badge/PHP-%23777BB4.svg?style=flat&logo=php&logoColor=white" class="h-6" />
+										<img src="https://img.shields.io/badge/JavaScript-%23323330.svg?style=flat&logo=javascript&logoColor=%23F7DF1E" class="h-6" />
+										<img src="https://img.shields.io/badge/HTML5-%23E34F26.svg?style=flat&logo=html5&logoColor=white" class="h-6" />
 									</div>
 								</div>
-								<div class="skill-card bg-white/5 p-8 border border-white/10">
-									<h3 class="text-sm font-bold text-white/30 mb-6 uppercase tracking-widest">🔧 框架与工具</h3>
+								<div class="bg-white/5 p-6 md:p-8 rounded-2xl border border-white/10">
+									<h3 class="text-xs font-bold text-white/30 mb-4 uppercase tracking-widest">🔧 开发工具</h3>
 									<div class="flex flex-wrap gap-2">
-										<img src="https://img.shields.io/badge/MySQL-%2344f.svg?style=for-the-badge&logo=mysql&logoColor=white" class="h-7 rounded" />
-										<img src="https://img.shields.io/badge/Git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white" class="h-7 rounded" />
-										<img src="https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black" class="h-7 rounded" />
-										<img src="https://img.shields.io/badge/Nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white" class="h-7 rounded" />
+										<img src="https://img.shields.io/badge/MySQL-%2344f.svg?style=flat&logo=mysql&logoColor=white" class="h-6" />
+										<img src="https://img.shields.io/badge/Linux-FCC624?style=flat&logo=linux&logoColor=black" class="h-6" />
+										<img src="https://img.shields.io/badge/Git-%23F05033.svg?style=flat&logo=git&logoColor=white" class="h-6" />
 									</div>
 								</div>
 							</section>
 						</div>
 
-						<div id="works" class="tab-content space-y-6">
-							<div class="anime-card p-8 flex items-center gap-8 h-auto">
-								<div class="w-20 h-20 bg-orange-500/20 rounded-2xl flex items-center justify-center text-4xl text-orange-400">
+						<!-- Works Tab -->
+						<div id="works" class="tab-content space-y-4">
+							<div class="anime-card p-6 md:p-8 flex items-start md:items-center gap-4 md:gap-8 flex-col md:flex-row">
+								<div class="w-14 h-14 md:w-20 md:h-20 bg-orange-500/20 rounded-xl md:rounded-2xl flex items-center justify-center text-3xl md:text-4xl text-orange-400 shrink-0">
 									<i class="fa-solid fa-code"></i>
 								</div>
-								<div class="flex-1">
-									<div class="flex justify-between items-center mb-2">
-										<h3 class="text-2xl font-bold">HtmlViewerOnScratch</h3>
-										<div class="flex gap-3 text-sm text-blue-400">
-											<a href="https://www.github.com/RuizeSun/HtmlViewerOnScratch" target="_blank" class="hover:underline">仓库</a>
-											<a href="https://www.github.com/RuizeSun/HtmlViewerOnScratch/releases" target="_blank" class="hover:underline">发行版</a>
+								<div class="flex-1 w-full">
+									<div class="flex justify-between items-start md:items-center mb-2">
+										<h3 class="text-xl md:text-2xl font-bold">HtmlViewerOnScratch</h3>
+										<div class="flex gap-3 text-xs md:text-sm text-blue-400">
+											<a href="https://www.github.com/RuizeSun/HtmlViewerOnScratch" target="_blank" class="hover:underline">仓库连结</a>
 										</div>
 									</div>
-									<p class="text-white/50">在 Scratch 项目中嵌入 HTML 片段。已被 40code 与 ZeroCat 社区收录。</p>
+									<p class="text-white/50 text-sm md:text-base">在 Scratch 项目中嵌入 HTML 片段。已被 40code 与 ZeroCat 社群收录。</p>
 								</div>
 							</div>
 						</div>
 
+						<!-- Anime Tab -->
 						<div id="anime" class="tab-content">
-							<div id="anime-loader" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-								<div class="anime-card loading-shimmer"></div>
-								<div class="anime-card loading-shimmer"></div>
-								<div class="anime-card loading-shimmer"></div>
-								<div class="anime-card loading-shimmer"></div>
+							<div id="anime-loader" class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+								<div class="h-32 anime-card loading-shimmer"></div>
+								<div class="h-32 anime-card loading-shimmer"></div>
+								<div class="h-32 anime-card loading-shimmer"></div>
+								<div class="h-32 anime-card loading-shimmer"></div>
 							</div>
-							<div id="anime-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-6 hidden"></div>
+							<div id="anime-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 hidden"></div>
 							<div id="anime-error" class="hidden text-center py-20">
 								<i class="fa-solid fa-triangle-exclamation text-4xl text-red-400 mb-4"></i>
-								<p class="text-white/40 mb-2">无法加载动漫数据</p>
-								<button onclick="fetchAnime(true)" class="text-xs bg-white/10 px-4 py-2 rounded-full hover:bg-white/20 transition">重试一次</button>
+								<p class="text-white/40 mb-4">数据加载失败</p>
+								<button onclick="fetchAnime(true)" class="bg-white/10 px-6 py-2 rounded-full hover:bg-white/20 transition text-sm">点击重试</button>
 							</div>
 						</div>
 					</div>
@@ -304,14 +357,21 @@
 
 		<script>
 			let isAnimeLoaded = false;
+
 			function switchTab(tabId, el) {
-				document.querySelectorAll(".nav-item").forEach((item) => item.classList.remove("active"));
-				if (el) el.classList.add("active");
+				// 如果是在按钮上触发
+				if (el) {
+					document.querySelectorAll(".nav-item").forEach((item) => item.classList.remove("active"));
+					el.classList.add("active");
+				}
+
 				document.querySelectorAll(".tab-content").forEach((content) => content.classList.remove("active"));
 				const targetContent = document.getElementById(tabId);
 				if (targetContent) targetContent.classList.add("active");
-				const titles = { about: "RuizeSun", works: "主要作品", anime: "看过的动漫" };
+
+				const titles = { about: "RuizeSun", works: "作品集", anime: "动漫收藏" };
 				document.getElementById("header-title").textContent = titles[tabId] || "RuizeSun";
+
 				if (tabId === "anime" && !isAnimeLoaded) fetchAnime();
 			}
 
@@ -319,42 +379,45 @@
 				const grid = document.getElementById("anime-grid");
 				const loader = document.getElementById("anime-loader");
 				const errorDiv = document.getElementById("anime-error");
+
 				if (!force && isAnimeLoaded) {
 					loader.classList.add("hidden");
 					grid.classList.remove("hidden");
 					return;
 				}
+
 				loader.classList.remove("hidden");
 				grid.classList.add("hidden");
 				errorDiv.classList.add("hidden");
+
 				try {
 					const response = await fetch("https://api.bgm.tv/v0/users/1078657/collections?limit=20", {
 						method: "GET",
 						headers: { Accept: "application/json" },
 					});
-					if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+					if (!response.ok) throw new Error(`Status: ${response.status}`);
+
 					const result = await response.json();
 					const animeData = result.data || [];
+
 					if (animeData.length === 0) {
-						grid.innerHTML = '<div class="col-span-2 text-center py-10 text-white/20">暂无收藏数据</div>';
+						grid.innerHTML = '<div class="col-span-full text-center py-10 text-white/20">暂无收藏数据</div>';
 					} else {
 						grid.innerHTML = animeData
 							.map((item) => {
 								const subject = item.subject || {};
-								const rating = item.rate > 0 ? `★ ${item.rate}` : subject.score > 0 ? `★ ${subject.score}` : "未评分";
+								const rating = item.rate > 0 ? `★ ${item.rate}` : subject.score > 0 ? `★ ${subject.score}` : "N/A";
 								const title = subject.name_cn || subject.name || "未知作品";
-								const cover = subject.images && subject.images.common ? subject.images.common : "https://via.placeholder.com/150x200?text=No+Image";
-								const date = subject.date || "未知日期";
-								const type = subject.eps > 1 ? `TV (${subject.eps}话)` : "剧场版/OVA";
+								const cover = subject.images?.common || "https://via.placeholder.com/150x200?text=No+Cover";
+
 								return `
-                                <div class="anime-card">
-                                    <img src="${cover}" alt="${title}" class="w-24 h-full object-cover border-r border-white/5" onerror="this.src='https://via.placeholder.com/150x200?text=No+Image'">
-                                    <div class="p-4 flex-1 flex flex-col justify-center overflow-hidden">
-                                        <h4 class="font-bold text-base truncate mb-1" title="${title}">${title}</h4>
-                                        <p class="text-[10px] text-white/30 mb-2 uppercase tracking-tighter">${date} • ${type}</p>
+                                <div class="anime-card flex h-32 overflow-hidden">
+                                    <img src="${cover}" alt="${title}" class="w-24 h-full object-cover border-r border-white/5">
+                                    <div class="p-3 md:p-4 flex-1 flex flex-col justify-center overflow-hidden">
+                                        <h4 class="font-bold text-sm md:text-base truncate mb-1">${title}</h4>
+                                        <p class="text-[10px] text-white/30 mb-2">${subject.date || "未知"}</p>
                                         <div class="flex items-center gap-2">
                                             <span class="text-yellow-400 text-[10px] font-bold bg-yellow-400/10 px-2 py-0.5 rounded-full">${rating}</span>
-                                            ${item.comment ? `<span class="text-[10px] text-white/40 italic truncate max-w-[120px]">"${item.comment}"</span>` : ""}
                                         </div>
                                     </div>
                                 </div>
@@ -366,22 +429,45 @@
 					loader.classList.add("hidden");
 					grid.classList.remove("hidden");
 				} catch (error) {
-					isAnimeLoaded = false;
+					console.error(error);
 					loader.classList.add("hidden");
 					errorDiv.classList.remove("hidden");
 				}
 			}
 
-			window.addEventListener("DOMContentLoaded", () => {
+			window.onload = () => {
 				const main = document.querySelector("main");
 				main.style.opacity = "0";
-				main.style.transform = "translateY(10px)";
+				main.style.transform = "scale(0.98)";
 				setTimeout(() => {
 					main.style.transition = "all 0.8s cubic-bezier(0.16, 1, 0.3, 1)";
 					main.style.opacity = "1";
-					main.style.transform = "translateY(0)";
+					main.style.transform = "scale(1)";
 				}, 100);
-			});
+			};
+		</script>
+		<script>
+			(function updateAge() {
+				// 1. 设置出生日期（精确到秒）
+				const birthDate = new Date("2012-08-02T00:00:00").getTime();
+				const ageElement = document.getElementById("age-span");
+
+				// 2. 定义一年的毫秒数 (365天计算)
+				const msPerYear = 31536000000;
+
+				// 3. 创建定时器，每 50 毫秒执行一次
+				setInterval(() => {
+					const now = new Date().getTime();
+
+					// 计算差值并转换成带小数的岁数
+					const age = (now - birthDate) / msPerYear;
+
+					// 更新到页面，保留 8 位小数增加动感
+					if (ageElement) {
+						ageElement.textContent = age.toFixed(10);
+					}
+				}, 50);
+			})();
 		</script>
 	</body>
 </html>
