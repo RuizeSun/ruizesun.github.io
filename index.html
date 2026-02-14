@@ -420,14 +420,14 @@
                                             ${
 												titleOrigin && titleOrigin !== titleCn
 													? `
-                                            <h4 class="absolute inset-0 font-bold text-sm md:text-base truncate opacity-0 transition-opacity duration-300 group-hover/title:opacity-100 text-blue-400/80">
+                                            <h4 class="absolute inset-0 font-bold text-sm md:text-base truncate opacity-0 transition-opacity duration-300 group-hover/title:opacity-100 text-blue-400/80" style="font-family: 'Yu Gothic'">
                                                 ${titleOrigin}
                                             </h4>`
 													: ""
 											}
                                         </div>
                                         <p class="text-[10px] text-white/20 mb-2">${subject.date || "未知日期"}</p>
-                                        <div class="flex flex-wrap gap-1.5 mb-2 overflow-hidden h-5">
+                                        <div class="flex flex-wrap gap-1.5 mb-2 overflow-hidden">
                                             ${tagsHtml}
                                         </div>
                                         <div class="flex items-center">
