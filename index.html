@@ -251,44 +251,57 @@
 			.progress-bar-container {
 				width: 100%;
 				height: 3px;
-				background: rgba(255,255,255,0.1);
+				background: rgba(255, 255, 255, 0.1);
 				border-radius: 9999px;
 				cursor: pointer;
 				position: relative;
 			}
 			.progress-bar-fill {
 				height: 100%;
-				background: rgba(255,255,255,0.6);
+				background: rgba(255, 255, 255, 0.6);
 				border-radius: 9999px;
 				transition: width 0.1s linear;
 				pointer-events: none;
 			}
 
 			.player-bar {
-				border-top: 1px solid rgba(255,255,255,0.06);
-				background: rgba(255,255,255,0.02);
+				border-top: 1px solid rgba(255, 255, 255, 0.06);
+				background: rgba(255, 255, 255, 0.02);
 			}
 
 			@keyframes spin {
-				from { transform: rotate(0deg); }
-				to { transform: rotate(360deg); }
+				from {
+					transform: rotate(0deg);
+				}
+				to {
+					transform: rotate(360deg);
+				}
 			}
 			.spinning {
 				animation: spin 4s linear infinite;
 			}
 
 			@keyframes equalizer {
-				0%, 100% { height: 4px; }
-				50% { height: 14px; }
+				0%,
+				100% {
+					height: 4px;
+				}
+				50% {
+					height: 14px;
+				}
 			}
 			.eq-bar {
 				width: 3px;
-				background: rgba(255,255,255,0.6);
+				background: rgba(255, 255, 255, 0.6);
 				border-radius: 9999px;
 				animation: equalizer 0.8s ease-in-out infinite;
 			}
-			.eq-bar:nth-child(2) { animation-delay: 0.2s; }
-			.eq-bar:nth-child(3) { animation-delay: 0.4s; }
+			.eq-bar:nth-child(2) {
+				animation-delay: 0.2s;
+			}
+			.eq-bar:nth-child(3) {
+				animation-delay: 0.4s;
+			}
 		</style>
 	</head>
 	<body class="flex items-center justify-center">
@@ -442,19 +455,19 @@
 					<!-- Player Bar (always visible when music is loaded) -->
 					<div id="player-bar" class="player-bar px-6 py-4 md:px-12 hidden">
 						<div class="flex items-center gap-4">
-							<img id="player-cover" src="" alt="" class="w-10 h-10 rounded-lg object-cover border border-white/10 shrink-0" style="transition: border-radius 0.3s;" />
+							<img id="player-cover" src="" alt="" class="w-10 h-10 rounded-lg object-cover border border-white/10 shrink-0" style="transition: border-radius 0.3s" />
 							<div class="flex-1 min-w-0">
 								<div class="flex items-center gap-2 mb-1">
 									<p id="player-title" class="text-sm font-semibold truncate"></p>
 									<div id="eq-indicator" class="hidden items-center gap-0.5 h-4 shrink-0">
-										<div class="eq-bar" style="height:4px"></div>
-										<div class="eq-bar" style="height:10px"></div>
-										<div class="eq-bar" style="height:7px"></div>
+										<div class="eq-bar" style="height: 4px"></div>
+										<div class="eq-bar" style="height: 10px"></div>
+										<div class="eq-bar" style="height: 7px"></div>
 									</div>
 								</div>
 								<p id="player-artist" class="text-xs text-white/30 truncate"></p>
 								<div class="progress-bar-container mt-2" id="progress-container">
-									<div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+									<div class="progress-bar-fill" id="progress-fill" style="width: 0%"></div>
 								</div>
 							</div>
 							<div class="flex items-center gap-3 shrink-0">
@@ -483,7 +496,29 @@
 			let currentTrackIndex = -1;
 			let isPlaying = false;
 
-			const audio = document.getElementById('audio-player');
+			const audio = document.getElementById("audio-player");
+
+			// Cache helper functions
+			const setCache = (key, data, ttlHours = 12) => {
+				const now = new Date();
+				const item = {
+					value: data,
+					expiry: now.getTime() + ttlHours * 60 * 60 * 1000,
+				};
+				localStorage.setItem(key, JSON.stringify(item));
+			};
+
+			const getCache = (key) => {
+				const itemStr = localStorage.getItem(key);
+				if (!itemStr) return null;
+				const item = JSON.parse(itemStr);
+				const now = new Date();
+				if (now.getTime() > item.expiry) {
+					localStorage.removeItem(key);
+					return null;
+				}
+				return item.value;
+			};
 
 			function switchTab(tabId, el) {
 				if (el) {
@@ -510,6 +545,18 @@
 					return;
 				}
 
+				// Check cache first
+				if (!force) {
+					const cachedData = getCache("anime_data");
+					if (cachedData) {
+						renderAnime(cachedData);
+						isAnimeLoaded = true;
+						loader.classList.add("hidden");
+						grid.classList.remove("hidden");
+						return;
+					}
+				}
+
 				loader.classList.remove("hidden");
 				grid.classList.add("hidden");
 				errorDiv.classList.add("hidden");
@@ -524,56 +571,9 @@
 					const result = await response.json();
 					const animeData = result.data || [];
 
-					if (animeData.length === 0) {
-						grid.innerHTML = '<div class="col-span-full text-center py-10 text-white/20">暂无收藏数据</div>';
-					} else {
-						const screenWidth = window.innerWidth;
-						const tagLimit = screenWidth < 768 ? 2 : screenWidth < 1280 ? 3 : 4;
+					setCache("anime_data", animeData);
+					renderAnime(animeData);
 
-						grid.innerHTML = animeData
-							.map((item) => {
-								const subject = item.subject || {};
-								const rating = item.rate > 0 ? `★ ${item.rate}` : subject.score > 0 ? `★ ${subject.score}` : "N/A";
-								const titleCn = subject.name_cn || subject.name || "未知作品";
-								const titleOrigin = subject.name || "";
-								const cover = subject.images?.common || "https://via.placeholder.com/150x200?text=No+Cover";
-								const bgmLink = `https://bgm.tv/subject/${subject.id}`;
-
-								const tagsHtml = (subject.tags || [])
-									.slice(0, tagLimit)
-									.map((t) => `<span class="bg-white/5 px-2 py-0.5 rounded text-[10px] text-white/30 border border-white/5">${t.name}</span>`)
-									.join("");
-
-								return `
-                                <div class="anime-card flex h-32 overflow-hidden group/card" onclick="window.open('${bgmLink}', '_blank')">
-                                    <img src="${cover}" alt="${titleCn}" class="w-24 h-full object-cover border-r border-white/5">
-                                    <div class="p-3 md:p-4 flex-1 flex flex-col justify-center overflow-hidden">
-                                        <div class="relative mb-1 group/title cursor-help h-6">
-                                            <h4 class="font-bold text-sm md:text-base truncate transition-opacity duration-300 group-hover/title:opacity-0">
-                                                ${titleCn}
-                                            </h4>
-                                            ${
-												titleOrigin && titleOrigin !== titleCn
-													? `
-                                            <h4 class="absolute inset-0 font-bold text-sm md:text-base truncate opacity-0 transition-opacity duration-300 group-hover/title:opacity-100 text-blue-400/80" style="font-family: 'Yu Gothic'">
-                                                ${titleOrigin}
-                                            </h4>`
-													: ""
-											}
-                                        </div>
-                                        <p class="text-[10px] text-white/20 mb-2">${subject.date || "未知日期"}</p>
-                                        <div class="flex flex-wrap gap-1.5 mb-2 overflow-hidden">
-                                            ${tagsHtml}
-                                        </div>
-                                        <div class="flex items-center">
-                                            <span class="text-yellow-400 text-[10px] font-bold bg-yellow-400/10 px-2 py-0.5 rounded-full">${rating}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-							})
-							.join("");
-					}
 					isAnimeLoaded = true;
 					loader.classList.add("hidden");
 					grid.classList.remove("hidden");
@@ -581,6 +581,60 @@
 					console.error(error);
 					loader.classList.add("hidden");
 					errorDiv.classList.remove("hidden");
+				}
+			}
+
+			function renderAnime(animeData) {
+				const grid = document.getElementById("anime-grid");
+				if (animeData.length === 0) {
+					grid.innerHTML = '<div class="col-span-full text-center py-10 text-white/20">暂无收藏数据</div>';
+				} else {
+					const screenWidth = window.innerWidth;
+					const tagLimit = screenWidth < 768 ? 2 : screenWidth < 1280 ? 3 : 4;
+
+					grid.innerHTML = animeData
+						.map((item) => {
+							const subject = item.subject || {};
+							const rating = item.rate > 0 ? `★ ${item.rate}` : subject.score > 0 ? `★ ${subject.score}` : "N/A";
+							const titleCn = subject.name_cn || subject.name || "未知作品";
+							const titleOrigin = subject.name || "";
+							const cover = subject.images?.common || "https://via.placeholder.com/150x200?text=No+Cover";
+							const bgmLink = `https://bgm.tv/subject/${subject.id}`;
+
+							const tagsHtml = (subject.tags || [])
+								.slice(0, tagLimit)
+								.map((t) => `<span class="bg-white/5 px-2 py-0.5 rounded text-[10px] text-white/30 border border-white/5">${t.name}</span>`)
+								.join("");
+
+							return `
+							<div class="anime-card flex h-32 overflow-hidden group/card" onclick="window.open('${bgmLink}', '_blank')">
+								<img src="${cover}" alt="${titleCn}" class="w-24 h-full object-cover border-r border-white/5">
+								<div class="p-3 md:p-4 flex-1 flex flex-col justify-center overflow-hidden">
+									<div class="relative mb-1 group/title cursor-help h-6">
+										<h4 class="font-bold text-sm md:text-base truncate transition-opacity duration-300 group-hover/title:opacity-0">
+											${titleCn}
+										</h4>
+										${
+											titleOrigin && titleOrigin !== titleCn
+												? `
+										<h4 class="absolute inset-0 font-bold text-sm md:text-base truncate opacity-0 transition-opacity duration-300 group-hover/title:opacity-100 text-blue-400/80" style="font-family: 'Yu Gothic'">
+											${titleOrigin}
+										</h4>`
+												: ""
+										}
+									</div>
+									<p class="text-[10px] text-white/20 mb-2">${subject.date || "未知日期"}</p>
+									<div class="flex flex-wrap gap-1.5 mb-2 overflow-hidden">
+										${tagsHtml}
+									</div>
+									<div class="flex items-center">
+										<span class="text-yellow-400 text-[10px] font-bold bg-yellow-400/10 px-2 py-0.5 rounded-full">${rating}</span>
+									</div>
+								</div>
+							</div>
+						`;
+						})
+						.join("");
 				}
 			}
 
@@ -595,6 +649,21 @@
 					return;
 				}
 
+				// Check cache first
+				if (!force) {
+					const cachedData = getCache("music_data");
+					if (cachedData) {
+						musicTracks = cachedData;
+						renderMusicList();
+						isMusicLoaded = true;
+						loader.classList.add("hidden");
+						list.classList.remove("hidden");
+						document.getElementById("player-bar").classList.remove("hidden");
+						if (currentTrackIndex === -1) loadTrack(0, false);
+						return;
+					}
+				}
+
 				loader.classList.remove("hidden");
 				list.classList.add("hidden");
 				errorDiv.classList.add("hidden");
@@ -607,6 +676,8 @@
 					if (!response.ok) throw new Error(`Status: ${response.status}`);
 					const data = await response.json();
 					musicTracks = data.slice(0, 10);
+
+					setCache("music_data", musicTracks);
 
 					if (musicTracks.length === 0) {
 						list.innerHTML = '<div class="text-center py-10 text-white/20">暂无歌曲</div>';
@@ -628,25 +699,30 @@
 
 			function renderMusicList() {
 				const list = document.getElementById("music-list");
-				list.innerHTML = musicTracks.map((track, i) => `
-					<div id="music-item-${i}" class="music-card flex items-center gap-4 px-4 py-3 ${i === currentTrackIndex ? 'playing' : ''}" onclick="loadTrack(${i}, true)">
+				list.innerHTML = musicTracks
+					.map(
+						(track, i) => `
+					<div id="music-item-${i}" class="music-card flex items-center gap-4 px-4 py-3 ${i === currentTrackIndex ? "playing" : ""}" onclick="loadTrack(${i}, true)">
 						<div class="w-8 h-8 flex items-center justify-center shrink-0">
-							${i === currentTrackIndex && isPlaying
-								? `<div class="flex items-end gap-0.5 h-4">
+							${
+								i === currentTrackIndex && isPlaying
+									? `<div class="flex items-end gap-0.5 h-4">
 										<div class="eq-bar" style="height:4px"></div>
 										<div class="eq-bar" style="height:10px"></div>
 										<div class="eq-bar" style="height:7px"></div>
 									</div>`
-								: `<span class="text-white/20 text-sm font-mono">${String(i + 1).padStart(2, '0')}</span>`
+									: `<span class="text-white/20 text-sm font-mono">${String(i + 1).padStart(2, "0")}</span>`
 							}
 						</div>
 						<img src="${track.pic}" alt="${track.name}" class="w-10 h-10 rounded-lg object-cover border border-white/10 shrink-0" onerror="this.src='https://via.placeholder.com/40?text=♪'" />
 						<div class="flex-1 min-w-0">
-							<p class="text-sm font-medium truncate ${i === currentTrackIndex ? 'text-white' : 'text-white/80'}">${track.name}</p>
+							<p class="text-sm font-medium truncate ${i === currentTrackIndex ? "text-white" : "text-white/80"}">${track.name}</p>
 							<p class="text-xs text-white/30 truncate mt-0.5">${track.artist}</p>
 						</div>
 					</div>
-				`).join('');
+				`,
+					)
+					.join("");
 			}
 
 			function loadTrack(index, autoPlay = true) {
@@ -660,10 +736,13 @@
 				document.getElementById("player-cover").src = track.pic;
 
 				if (autoPlay) {
-					audio.play().then(() => {
-						isPlaying = true;
-						updatePlayUI();
-					}).catch(e => console.error(e));
+					audio
+						.play()
+						.then(() => {
+							isPlaying = true;
+							updatePlayUI();
+						})
+						.catch((e) => console.error(e));
 				} else {
 					isPlaying = false;
 					updatePlayUI();
@@ -677,9 +756,21 @@
 					audio.pause();
 					isPlaying = false;
 				} else {
-					audio.play().then(() => { isPlaying = true; updatePlayUI(); }).catch(e => console.error(e));
+					audio
+						.play()
+						.then(() => {
+							isPlaying = true;
+							updatePlayUI();
+						})
+						.catch((e) => console.error(e));
 				}
 				updatePlayUI();
+			}
+
+			function prevTrack() {
+				if (!musicTracks.length) return;
+				const idx = (currentTrackIndex - 1 + musicTracks.length) % musicTracks.length;
+				loadTrack(idx, true);
 			}
 
 			function prevTrack() {
@@ -720,7 +811,9 @@
 				document.getElementById("progress-fill").style.width = pct + "%";
 			});
 
-			audio.addEventListener("ended", () => { nextTrack(); });
+			audio.addEventListener("ended", () => {
+				nextTrack();
+			});
 
 			document.getElementById("progress-container").addEventListener("click", (e) => {
 				if (!audio.duration) return;
